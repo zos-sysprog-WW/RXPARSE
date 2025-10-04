@@ -1,0 +1,688 @@
+---1---
+S='a b c'
+T='"a" ?1 .'
+?1='b'
+OK
+
+---2---
+S='a b c'
+T='"a" ?1 "b" ?2'
+?1=' '
+OK
+?2=' c'
+OK
+
+---3---
+S='a b c'
+T='"a" ?1 "c" ?2'
+?1=' b '
+OK
+?2=''
+OK
+
+---4---
+S='a b c'
+T='?1 5 ?2'
+?1='a b '
+OK
+?2='c'
+OK
+
+---5---
+S='a b c'
+T='1 ?1 5 ?2'
+?1='a b '
+OK
+?2='c'
+OK
+
+---6---
+S='a b c'
+T='?1 +2 ?2 +2 .'
+?1='a '
+OK
+?2='b '
+OK
+
+---7---
+S='a   b c  '
+T='?1 ?2'
+?1='a'
+OK
+?2='  b c  '
+OK
+
+---8---
+S='  a  '
+T='?1'
+?1='  a  '
+OK
+
+---9---
+S='a b c'
+T='. ?1 .'
+?1='b'
+OK
+
+---10---
+S='a,b, c'
+T='?1 "," ?2 "," ?3'
+?1='a'
+OK
+?2='b'
+OK
+?3=' c'
+OK
+
+---11---
+S='a b c '
+T='?1 =3 ?2 =4 ?3'
+?1='a '
+OK
+?2='b'
+OK
+?3=' c '
+OK
+
+---12---
+S='a b c '
+T='3 ?1 1 ?2 5 ?3 6'
+?1='b c '
+OK
+?2='a b '
+OK
+?3='c'
+OK
+
+---13---
+S='a b c '
+T='3 ?1 4 1 ?2 2 5 ?3 6'
+?1='b'
+OK
+?2='a'
+OK
+?3='c'
+OK
+
+---14---
+S='a b  c '
+T='?1 +2 ?2 +3 ?3 -3 ?4 .'
+?1='a '
+OK
+?2='b  '
+OK
+?3='c '
+OK
+?4='b'
+OK
+
+---15---
+S='a b c d'
+T='?1 ?2 5 ?3 7 ?4'
+?1='a'
+OK
+?2='b '
+OK
+?3='c '
+OK
+?4='d'
+OK
+
+---16---
+S='a b c d'
+T='"a" ?1 ?2 5 ?3 7 ?4'
+?1='b'
+OK
+?2=''
+OK
+?3='c '
+OK
+?4='d'
+OK
+
+---17---
+S='a b c d'
+T='?1 "b" +2 ?2 +2 ?3'
+?1='a '
+OK
+?2='c '
+OK
+?3='d'
+OK
+
+---18---
+S='a b c d'
+T='?1 "b" +2 ?2 +2 ?3 -6 ?4 .'
+?1='a '
+OK
+?2='c '
+OK
+?3='d'
+OK
+?4='a'
+OK
+
+---19---
+S='a b c d'
+T='?6 "b" +2 ?4 +2 ?3 -6 ?2 .'
+?2='a'
+OK
+?3='d'
+OK
+?4='c '
+OK
+?6='a '
+OK
+
+---20---
+S='a b c d'
+T='1 ?1 0 1 ?2 1 5 ?3 4 ?4 4'
+?1='a b c d'
+OK
+?2='a b c d'
+OK
+?3='c d'
+OK
+?4=' c d'
+OK
+
+---21---
+S='Sirius Polaris Rigil'
+T='?1 ?2 ?3'
+?1='Sirius'
+OK
+?2='Polaris'
+OK
+?3='Rigil'
+OK
+
+---22---
+S='moon'
+T='?1 ?2'
+?1='moon'
+OK
+?2=''
+OK
+
+---23---
+S='moon Io Europa Callisto...'
+T='?1 ?2'
+?1='moon'
+OK
+?2='Io Europa Callisto...'
+OK
+
+---24---
+S='Mercury Venus   Earth   Mars    Jupiter '
+T='?1 ?2 ?3 ?4'
+?1='Mercury'
+OK
+?2='Venus'
+OK
+?3='Earth'
+OK
+?4='  Mars    Jupiter '
+OK
+
+---25---
+S='    Pluto   '
+T='?1'
+?1='    Pluto   '
+OK
+
+---26---
+S='Arcturus Betelgeuse Sirius Rigil'
+T='. . ?1 .'
+?1='Sirius'
+OK
+
+---27---
+S='Smith, John'
+T='?1 ?2'
+?1='Smith,'
+OK
+?2='John'
+OK
+
+---28---
+S='Smith, John'
+T='?1 ", " ?2'
+?1='Smith'
+OK
+?2='John'
+OK
+
+---29---
+S='Clemens    Samuel    Mark Twain          '
+T='?1 11 ?2 21 ?3'
+?1='Clemens   '
+OK
+?2=' Samuel   '
+OK
+?3=' Mark Twain          '
+OK
+
+---30---
+S='Clemens    Samuel    Mark Twain          '
+T='1 ?1 11 ?2 21 ?3'
+?1='Clemens   '
+OK
+?2=' Samuel   '
+OK
+?3=' Mark Twain          '
+OK
+
+---31---
+S='Clemens    Samuel    Mark Twain          '
+T='?1 =11 ?2 =21 ?3'
+?1='Clemens   '
+OK
+?2=' Samuel   '
+OK
+?3=' Mark Twain          '
+OK
+
+---32---
+S='Clemens    Samuel    Mark Twain          '
+T='?1 +10 ?2 +10 ?3'
+?1='Clemens   '
+OK
+?2=' Samuel   '
+OK
+?3=' Mark Twain          '
+OK
+
+---33---
+S='astronomers'
+T='2 ?1 4 1 ?2 2 4 ?3 5 11 ?4'
+?1='st'
+OK
+?2='a'
+OK
+?3='r'
+OK
+?4='s'
+OK
+
+---34---
+S='astronomers'
+T='2 ?1 +2 -3 ?2 +1 +2 ?3 +1 +6 ?4'
+?1='st'
+OK
+?2='a'
+OK
+?3='r'
+OK
+?4='s'
+OK
+
+---35---
+S='Silas Marner, Felix Holt, Daniel Deronda, Middle'
+T='1 ?1 1 ?2'
+?1='Silas Marner, Felix Holt, Daniel Deronda, Middle'
+OK
+?2='Silas Marner, Felix Holt, Daniel Deronda, Middle'
+OK
+
+---36---
+S='     John      Q.   Public'
+T='?1 ?2 "." ?3'
+?1='John'
+OK
+?2='     Q'
+OK
+?3='   Public'
+OK
+
+---37---
+S='R E X X'
+T='?1 ?2 4 ?3 6 ?4'
+?1='R'
+OK
+?2='E'
+OK
+?3=' X'
+OK
+?4=' X'
+OK
+
+---38---
+S='4,Porthos Athos Aramis D'Artagnon'
+T='?1 "," . . . ?2'
+?1='4'
+OK
+?2='D'Artagnon'
+OK
+
+---39---
+S='REstructured eXtended eXecutor'
+T='?1 3 . "X" ?2 +1 . "X" ?3 +1 .'
+?1='RE'
+OK
+?2='X'
+OK
+?3='X'
+OK
+
+---41---
+S='a b c'
+T='"a  ?1 .'
+12:        !
+
+---42---
+S='a b c'
+T='"a" ?12345 .'
+ 8:         !
+
+---43---
+S='a b c'
+T='"a" ?x2 .'
+ 8:     !
+
+---44---
+S='a b c'
+T='"a" ?7 .'
+16:     !
+
+---45---
+S='a b c'
+T='"a" ?1 ..'
+ 8:        !
+
+---46---
+S='a b c'
+T='"a" ?1 12345 .'
+ 8:           !
+
+---47---
+S='a b c'
+T='"a" ?1 3x .'
+ 8:        !
+
+---48---
+S='a b c'
+T='"a" ?1 =12345 .'
+ 8:            !
+
+---49---
+S='a b c'
+T='"a" ?1 =3x .'
+ 8:         !
+
+---50---
+S='a b c'
+T='"a" ?1 +12345 .'
+ 8:            !
+
+---51---
+S='a b c'
+T='"a" ?1 -3x .'
+ 8:         !
+
+---52---
+S='a b c'
+T='"a" x .'
+ 8:    !
+
+---53---
+S='  a  x  b  x  c  '
+T='?1 "x" ?3 "x" ?5'
+?1='  a  '
+OK
+?3='  b  '
+OK
+?5='  c  '
+OK
+
+---54---
+S='  a  x  b  x  c  '
+T='?1 ?2 "x" ?3 ?4 "x" ?5 ?6'
+?1='a'
+OK
+?2=' '
+OK
+?3='b'
+OK
+?4=' '
+OK
+?5='c'
+OK
+?6=' '
+OK
+
+---55---
+S='  a  x  b  x  c  '
+T='?1 . "x" ?3 . "x" ?5 .'
+?1='a'
+OK
+?3='b'
+OK
+?5='c'
+OK
+
+---56---
+S='  a  b  x  c  d  z  x  e  f  z  '
+T='?1 ?2 "x" ?3 ?4  . "x" ?5 ?6'
+?1='a'
+OK
+?2=' b  '
+OK
+?3='c'
+OK
+?4='d'
+OK
+?5='e'
+OK
+?6=' f  z  '
+OK
+
+---57---
+S='LISTC CAT(cat) OUT(dsn) LEVEL(lvl) CLUSTER ALL'
+T='7 "CAT(" ?1 ")" 7 "OUT(" ?2 ")" 7 "LEVEL(" ?3 ")" ?4 ?5'
+?1='cat'
+OK
+?2='dsn'
+OK
+?3='lvl'
+OK
+?4='CLUSTER'
+OK
+?5='ALL'
+OK
+
+---58---
+S='grep -v [aeiou] wordlist.txt'
+T='5 "-" ?1 " [" ?2 "] " ?3 5 "-" ?4 " '" ?5 "' " ?6'
+?1='v'
+OK
+?2='aeiou'
+OK
+?3='wordlist.txt'
+OK
+?4='v [aeiou] wordlist.txt'
+OK
+?5=''
+OK
+?6=''
+OK
+
+---59---
+S='grep -v 'xyz' wordlist.txt'
+T='5 "-" ?4 " [" ?5 "] " ?6 5 "-" ?1 " '" ?2 "' " ?3'
+?1='v'
+OK
+?2='xyz'
+OK
+?3='wordlist.txt'
+OK
+?4='v 'xyz' wordlist.txt'
+OK
+?5=''
+OK
+?6=''
+OK
+
+---61---
+S='Experience is the best teacher.'
+T='?1 ?2 ?3'
+?1='Experience'
+OK
+?2='is'
+OK
+?3='the best teacher.'
+OK
+
+---62---
+S='Experience is the best teacher.'
+T='?1 ?2 ?3 ?4 ?5 ?6'
+?1='Experience'
+OK
+?2='is'
+OK
+?3='the'
+OK
+?4='best'
+OK
+?5='teacher.'
+OK
+?6=''
+OK
+
+---63---
+S='Experience is the best teacher.'
+T='?1 ?2 . . ?3'
+?1='Experience'
+OK
+?2='is'
+OK
+?3='teacher.'
+OK
+
+---64---
+S='Experience is the best teacher.'
+T='?1 5 ?2'
+?1='Expe'
+OK
+?2='rience is the best teacher.'
+OK
+
+---65---
+S='Experience is the best teacher.'
+T='?1 ?2 15 ?3 3 ?4'
+?1='Experience'
+OK
+?2='is '
+OK
+?3='the best teacher.'
+OK
+?4='perience is the best teacher.'
+OK
+
+---66---
+S='Experience is the best teacher.'
+T='15 ?1 +16 =12 ?2 +2 1 ?3 +10'
+?1='the best teacher'
+OK
+?2='is'
+OK
+?3='Experience'
+OK
+
+---67---
+S='Experience is the best teacher.'
+T='1 ?1 +11 ?2 +6 ?3 -4 ?4'
+?1='Experience '
+OK
+?2='is the'
+OK
+?3=' best teacher.'
+OK
+?4=' the best teacher.'
+OK
+
+---68---
+S='Experience is the best teacher.'
+T='1 ?1 =7 ?2 +6 ?3'
+?1='Experi'
+OK
+?2='ence i'
+OK
+?3='s the best teacher.'
+OK
+
+---69---
+S='     x     y    z    '
+T='?1 "x" ?2 ?3 "y" . ?5 "z" ?6 .'
+?1='     '
+OK
+?2=''
+OK
+?3=''
+OK
+?5=''
+OK
+?6=''
+OK
+
+---70---
+S='a b c'
+T='1 ?1 1 ?2 "a"'
+?1='a b c'
+OK
+?2=''
+OK
+
+---71---
+S='a "b"'
+T='?1 """ ?2'
+12:         !
+
+---72---
+S='a "b"'
+T='?1 """ ?2 ""'
+12:            !
+
+---73---
+S='a "b"'
+T='?1 """ ?2 """ "'
+12:               !
+
+---74---
+S='a b c'
+T='?1 - ?2'
+ 8:   !
+
+---75---
+S='a b c'
+T='?1 -9 ?2'
+?1='a b c'
+OK
+?2='a b c'
+OK
+
+---76---
+S='a b c'
+T='?1 99 ?2'
+?1='a b c'
+OK
+?2=''
+OK
+
+---77---
+S='a b c'
+T='?1 9999999999 ?2'
+ 8:            !
+
+---78---
+S='a b c'
+T='?1 .. ?2'
+ 8:    !
+
+---79---
+S='a b c'
+T='?1 "a" "c" ?2'
+?1=''
+OK
+?2=''
+OK
+

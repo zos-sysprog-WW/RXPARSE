@@ -1,0 +1,479 @@
+ rxparse: proc(string,
+               template,
+               tokens,
+               misc);
+
+   %replace dtt by 50;     /* (length(template) + 1) / 2 */
+   %replace ltstr by 100;  /* length(template)           */
+   %replace ltemp by 101;  /* length(template) + 1       */
+   %replace lpatt by 100;  /* length(template)           */
+   %replace ltoken by 100; /* length(tokens(1))          */
+
+   dcl string char(*) var;
+   dcl template char(*) var;
+   dcl tokens(dtt) char(*) var;
+   dcl 1 misc,
+         2 ntokens fixed bin(15),
+         2 retcode fixed bin(15),
+         2 xtokens fixed bin(15),
+         2 xtemplate fixed bin(15),
+         2 qtemplate char(1),
+         2 varprefix char(1),
+         2 maxlngtok fixed bin(15);
+
+   dcl toks(dtt) char(ltoken) var;
+   dcl tok char(ltoken) var based(p);
+   dcl p ptr;
+   dcl t fixed bin(31);
+
+   dcl 1 tt(dtt),
+         2 pos fixed bin(15),
+         2 len fixed bin(15),
+         2 num fixed bin(15),
+         2 typ char(1);
+   dcl ntt fixed bin(15) init(0);
+   dcl tstr char(ltstr) var;
+   dcl temp char(ltemp);
+   dcl patt char(lpatt) var;
+
+   dcl (i,j,k,l) fixed bin(15);
+   dcl (q,x) bit(1) init('0'b);;
+   dcl c char(1);
+   dcl (sl,ms,me,ii) fixed bin(15);
+   dcl (ss,se,ts,te) fixed bin(15);
+
+ /*********************************************************************/
+
+   retcode = 0;
+   xtokens = 0;
+   xtemplate = 0;
+   if qtemplate ^= '''' & qtemplate ^= '"' then
+     qtemplate = '''';
+   if varprefix = ' ' then
+     varprefix = '?';
+   do i = 1 to ntokens;
+     toks(i) = '';
+   end;
+   tstr = '';
+   temp = template || ' ';
+
+   if length(template) > ltstr then do;
+     call err('l',ltstr);
+     return;
+   end;
+   if ntokens > dtt then do;
+     call err('d',dtt);
+     return;
+   end;
+   if maxlngtok > ltoken then do;
+     call err('m',ltoken);
+     return;
+   end;
+
+ /*********************************************************************/
+
+   j = 0;
+   do i = 1 to length(temp) while(^x);
+     c = substr(temp,i,1);
+
+     if c = qtemplate then do;
+       if ^q then do;
+         q = '1'b;
+         j = i;
+       end;
+       else
+         if substr(temp,i + 1,1) = qtemplate then
+           i = i + 1;
+         else
+           q = '0'b;
+     end;
+
+     else
+     if c = ' ' then do;
+       if ^q then
+         if j > 0 then do;
+           l = i - j;
+           call ttok(j,l);
+           if retcode > 0 then
+             x = '1'b;
+           j = 0;
+         end;
+     end;
+
+     else
+     if ^q then
+       if j = 0 then
+         j = i;
+   end;
+
+   if retcode > 0 then
+     return;
+   else
+     if q = '1'b then do;
+       l = length(template) + 1;
+       call err('q',l);
+       return;
+     end;
+
+ /*********************************************************************/
+
+   sl = length(string);
+   ms = 1;
+   me = 1;
+   ii = 0;
+
+   do i = 1 to ntt;
+     if tt(i).typ = 'o' then do;
+       ss = ms;
+       ts = ii + 1;
+       if tt(i).num >= 0 then
+         ms = min(sl + 1, ms + tt(i).num);
+       else
+         ms = max(1, ms + tt(i).num);
+       me = ms;
+       se = ms;
+       te = i - 1;
+       call words(ss,se,ts,te,'o');
+       ii = i;
+     end;
+
+     else
+     if tt(i).typ = 'p' then do;
+       ss = me;
+       ts = ii + 1;
+       ms = min(sl + 1, tt(i).num);
+       me = ms;
+       se = ms;
+       te = i - 1;
+       call words(ss,se,ts,te,'p');
+       ii = i;
+     end;
+
+     else
+     if tt(i).typ = 's' then do;
+       patt = substr(tstr,tt(i).pos,tt(i).len);
+       k = index(substr(string,me,sl + 1 - me),patt);
+       if k > 0 then do;
+         ss = me;
+         ts = ii + 1;
+         ms = k - 1 + me;
+         me = ms + tt(i).len;
+       end;
+       else do;
+         ss = me;
+         ts = ii + 1;
+         ms = sl + 1;
+         me = ms;
+       end;
+       se = ms;
+       te = i - 1;
+       call words(ss,se,ts,te,'s');
+       ii = i;
+     end;
+   end;
+
+   ss = me;
+   ts = ii + 1;
+   se = sl + 1;
+   te = ntt;
+   call words(ss,se,ts,te,' ');
+
+ /*********************************************************************/
+
+   p = addr(tokens(1));
+   unspec(t) = unspec(p);
+   do i = 1 to xtokens;
+     p->tok = toks(i);
+     t = t + 3 + maxlngtok;
+     unspec(p) = unspec(t);
+   end;
+
+   return;
+
+ /*********************************************************************/
+
+   words: proc(ss,se,ts,te,ty);
+
+     dcl (ss,se,ts,te) fixed bin(15);
+     dcl ty char(1);
+
+     dcl part char(sl) var;
+     dcl (i,j) fixed bin(15);
+
+     if se > ss then
+       part = substr(string,ss,se - ss);
+     else
+       if ty = 's' then
+         part = '';
+       else
+         part = substr(string,ss,sl + 1 - ss);
+     do i = ts to te;
+
+       if i = te then do;
+         if tt(i).typ = '?' then
+           toks(tt(i).num) = part;
+       end;
+
+       else
+       if part = '' then do; /* contains only blanks */
+         if te = ts then
+           if tt(i).typ = '?' then
+             toks(tt(i).num) = part;
+           else;
+         else;
+           if tt(i).typ = '?' then
+             toks(tt(i).num) = '';
+         part = '';
+       end;
+
+       else do;
+         call stripl(part);
+         j = index(part,' ');
+         if j = 0 then do;
+           if tt(i).typ = '?' then
+             toks(tt(i).num) = part;
+           part = '';
+         end;
+         else do;
+           if tt(i).typ = '?' then
+             toks(tt(i).num) = substr(part,1,j - 1);
+           if j < length(part) then
+             part = substr(part,j + 1,length(part) - j);
+           else
+             part = '';
+         end;
+       end;
+
+     end;
+
+     return;
+
+   end;
+
+ /*********************************************************************/
+
+   stripl: proc(s);
+
+     dcl s char(*) var;
+
+     dcl i fixed bin(15);
+     dcl x bit(1) init('0'b);;
+
+     if s = '' then /* contains only blanks */
+       s = '';
+     else
+       do i = 1 to length(s) while(^x);
+         if substr(s,i,1) ^= ' ' then do;
+           x = '1'b;
+           if i > 1 then
+             s = substr(s,i,length(s) + 1 - i);
+         end;
+       end;
+
+     return;
+
+   end;
+
+ /*********************************************************************/
+
+   ttok: proc(tpos,tlen);
+
+     dcl (tpos,tlen) fixed bin(15);
+
+     dcl (c,cq) char(1);
+     dcl (i,v) fixed bin(15);
+
+     ntt = ntt + 1;
+     tt(ntt).pos = tpos;
+     tt(ntt).len = tlen;
+     c = substr(template,tpos,1);
+
+     if c = qtemplate then do;
+       tt(ntt).pos = length(tstr) + 1;
+       tt(ntt).len = 0;
+       tt(ntt).typ = 's';
+       patt = substr(template,tpos + 1,tlen - 2) || ' ';
+       do i = 1 to length(patt) - 1;
+         cq = substr(patt,i,1);
+         tstr = tstr || cq;
+         tt(ntt).len = tt(ntt).len + 1;
+         if cq = c then
+           if substr(patt,i + 1,1) = c then
+             i = i + 1;
+       end;
+     end;
+
+     else
+     if c = varprefix then do;
+       tt(ntt).typ = '?';
+       if tlen > 5 then do;
+         l = tpos - 1 + tlen;
+         call err('t',l);
+       end;
+       else do;
+         patt = substr(template,tpos + 1,tlen - 1);
+         v = verify(patt,'0123456789');
+         if v > 0 then do;
+           l = tpos + v;
+           call err('t',l);
+         end;
+       end;
+       if retcode = 0 then do;
+         tt(ntt).num = s2n(patt);
+         if tt(ntt).num > ntokens then do;
+           l = tpos + 1;
+           call err('n',l);
+         end;
+         else
+           xtokens = max(tt(ntt).num,xtokens);
+       end;
+     end;
+
+     else
+     if c = '.' then do;
+       tt(ntt).typ = '.';
+       if tlen > 1 then do;
+         l = tpos + 1;
+         call err('t',l);
+       end;
+     end;
+
+     else
+     if c >= '0' & c <= '9' then do;
+       tt(ntt).typ = 'p';
+       if tlen > 4 then do;
+         l = tpos - 1 + tlen;
+         call err('t',l);
+       end;
+       else do;
+         patt = substr(template,tpos,tlen);
+         v = verify(patt,'0123456789');
+         if v > 0 then do;
+           l = tpos - 1 + v;
+           call err('t',l);
+         end;
+       end;
+       if retcode = 0 then
+         tt(ntt).num = s2n(patt);
+     end;
+
+     else
+     if c = '=' then do;
+       tt(ntt).typ = 'p';
+       if tlen < 2 |
+          tlen > 5 then do;
+         l = tpos - 1 + tlen;
+         call err('t',l);
+       end;
+       else do;
+         patt = substr(template,tpos + 1,tlen - 1);
+         v = verify(patt,'0123456789');
+         if v > 0 then do;
+           l = tpos + v;
+           call err('t',l);
+         end;
+       end;
+       if retcode = 0 then
+         tt(ntt).num = s2n(patt);
+     end;
+
+     else
+     if c = '+' | c = '-' then do;
+       tt(ntt).typ = 'o';
+       if tlen < 2 |
+          tlen > 5 then do;
+         l = tpos - 1 + tlen;
+         call err('t',l);
+       end;
+       else do;
+         patt = substr(template,tpos + 1,tlen - 1);
+         v = verify(patt,'0123456789');
+         if v > 0 then do;
+           l = tpos + v;
+           call err('t',l);
+         end;
+       end;
+       if retcode = 0 then do;
+         tt(ntt).num = s2n(patt);
+         if c = '-' then
+           tt(ntt).num = -tt(ntt).num;
+       end;
+     end;
+
+     else do;
+       l = tpos;
+       call err('t',l);
+     end;
+
+     return;
+
+   end;
+
+ /*********************************************************************/
+
+   err: proc(et,ei);
+
+     dcl et char(1);
+     dcl ei fixed bin(15);
+
+     if et = 'q' then do;
+       retcode = 12; /* unmatched quote in template */
+       xtemplate = ei;
+     end;
+
+     else
+     if et = 't' then do;
+       retcode = 8; /* invalid template */
+       xtemplate = ei;
+     end;
+
+     else
+     if et = 'n' then do;
+       retcode = 16; /* more '?n' in template than tokens */
+       xtemplate = ei;
+     end;
+
+     else
+     if et = 'l' then do;
+       retcode = 20; /* length(template) > ltstr increase & recompile */
+       xtemplate = ei;
+     end;
+
+     else
+     if et = 'd' then do;
+       retcode = 24; /* ntoken > dtt -> increase & recompile */
+       xtokens = ei;
+     end;
+
+     else
+     if et = 'm' then do;
+       retcode = 28; /* maxlngtok > ltoken -> increase & recompile */
+       maxlngtok = ei;
+     end;
+
+     return;
+
+   end;
+
+ /*********************************************************************/
+
+   s2n: proc(s) returns(fixed bin(15));
+
+     dcl s char(*) var;
+
+     dcl (n,i) fixed bin(15);
+     dcl j fixed bin(15) init(1);
+     dcl c char(1);
+
+     n = 0;
+     do i = length(s) to 1 by -1;
+       c = substr(s,i,1);
+       n = n + ((index('0123456789',c) - 1) * j);
+       j = j * 10;
+     end;
+
+     return(n);
+
+   end;
+
+ end;

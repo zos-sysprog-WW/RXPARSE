@@ -1,0 +1,403 @@
+ RXPARSE: PROC(STRING,
+               TEMPLATE,
+               TOKENS,
+               MISC);
+
+   DCL STRING CHAR(*) VAR ;
+   DCL TEMPLATE CHAR(*) VAR ;
+   DCL TOKENS(*) CHAR(*) VAR ;
+   DCL 1 MISC,
+         2 NTOKENS FIXED BIN(15),
+         2 RETCODE FIXED BIN(15),
+         2 XTOKENS FIXED BIN(15),
+         2 XTEMPLATE FIXED BIN(15),
+         2 QTEMPLATE CHAR(1),
+         2 VARPREFIX CHAR(1);
+
+   DCL 1 TT((LENGTH(TEMPLATE) + 1) / 2),
+         2 POS FIXED BIN(15),
+         2 LEN FIXED BIN(15),
+         2 NUM FIXED BIN(15),
+         2 TYP CHAR(1);
+   DCL NTT FIXED BIN(15) INIT(0);
+
+   DCL (I,J,K,L) FIXED BIN(15);
+   DCL (Q,X) BIT(1) INIT('0'B);;
+   DCL C CHAR(1);
+   DCL TSTR CHAR(LENGTH(TEMPLATE)) VAR;
+   DCL TEMP CHAR(LENGTH(TEMPLATE) + 1);
+   DCL PATT CHAR(LENGTH(TEMPLATE)) VAR;
+   DCL (SL,MS,ME,II) FIXED BIN(15);
+   DCL (SS,SE,TS,TE) FIXED BIN(15);
+
+ /*********************************************************************/
+
+   RETCODE = 0;
+   XTOKENS = 0;
+   XTEMPLATE = 0;
+   IF QTEMPLATE ^= '''' & QTEMPLATE ^= '"' THEN
+     QTEMPLATE = '''';
+   IF VARPREFIX = ' ' THEN
+     VARPREFIX = '?';
+   DO I = 1 TO NTOKENS;
+     TOKENS(I) = '';
+   END;
+   TSTR = '';
+   TEMP = TEMPLATE || ' ';
+
+   J = 0;
+   DO I = 1 TO LENGTH(TEMP) WHILE(^X);
+     C = SUBSTR(TEMP,I,1);
+
+     IF C = QTEMPLATE THEN DO;
+       IF ^Q THEN DO;
+         Q = '1'B;
+         J = I;
+       END;
+       ELSE
+         IF SUBSTR(TEMP,I + 1,1) = QTEMPLATE THEN
+           I = I + 1;
+         ELSE
+           Q = '0'B;
+     END;
+
+     ELSE
+     IF C = ' ' THEN DO;
+       IF ^Q THEN
+         IF J > 0 THEN DO;
+           L = I - J;
+           CALL TTOK(J,L);
+           IF RETCODE > 0 THEN
+             X = '1'B;
+           J = 0;
+         END;
+     END;
+
+     ELSE
+     IF ^Q THEN
+       IF J = 0 THEN
+         J = I;
+   END;
+
+   IF RETCODE > 0 THEN
+     RETURN;
+   ELSE
+     IF Q = '1'B THEN DO;
+       L = LENGTH(TEMP);
+       CALL ERR('Q',L);
+       RETURN;
+     END;
+
+ /*********************************************************************/
+
+   SL = LENGTH(STRING);
+   MS = 1;
+   ME = 1;
+   II = 0;
+
+   DO I = 1 TO NTT;
+     IF TT(I).TYP = 'O' THEN DO;
+       SS = MS;
+       TS = II + 1;
+       IF TT(I).NUM >= 0 THEN
+         MS = MIN(SL + 1, MS + TT(I).NUM);
+       ELSE
+         MS = MAX(1, MS + TT(I).NUM);
+       ME = MS;
+       SE = MS;
+       TE = I - 1;
+       CALL WORDS(SS,SE,TS,TE,'O');
+       II = I;
+     END;
+
+     ELSE
+     IF TT(I).TYP = 'P' THEN DO;
+       SS = ME;
+       TS = II + 1;
+       MS = MIN(SL + 1, TT(I).NUM);
+       ME = MS;
+       SE = MS;
+       TE = I - 1;
+       CALL WORDS(SS,SE,TS,TE,'P');
+       II = I;
+     END;
+
+     ELSE
+     IF TT(I).TYP = 'S' THEN DO;
+       PATT = SUBSTR(TSTR,TT(I).POS,TT(I).LEN);
+       K = INDEX(SUBSTR(STRING,ME,SL + 1 - ME),PATT);
+       IF K > 0 THEN DO;
+         SS = ME;
+         TS = II + 1;
+         MS = K - 1 + ME;
+         ME = MS + TT(I).LEN;
+       END;
+       ELSE DO;
+         SS = ME;
+         TS = II + 1;
+         MS = SL + 1;
+         ME = MS;
+       END;
+       SE = MS;
+       TE = I - 1;
+       CALL WORDS(SS,SE,TS,TE,'S');
+       II = I;
+     END;
+   END;
+
+   SS = ME;
+   TS = II + 1;
+   SE = SL + 1;
+   TE = NTT;
+   CALL WORDS(SS,SE,TS,TE,' ');
+
+   RETURN;
+
+ /*********************************************************************/
+
+   WORDS: PROC(SS,SE,TS,TE,TY);
+
+     DCL (SS,SE,TS,TE) FIXED BIN(15);
+     DCL TY CHAR(1);
+
+     DCL PART CHAR(SL) VAR;
+     DCL (I,J) FIXED BIN(15);
+
+     IF SE > SS THEN
+       PART = SUBSTR(STRING,SS,SE - SS);
+     ELSE
+       IF TY = 'S' THEN
+         PART = '';
+       ELSE
+         PART = SUBSTR(STRING,SS,SL + 1 - SS);
+     DO I = TS TO TE;
+
+       IF I = TE THEN DO;
+         IF TT(I).TYP = '?' THEN
+           TOKENS(TT(I).NUM) = PART;
+       END;
+
+       ELSE
+       IF PART = '' THEN DO; /* CONTAINS ONLY BLANKS */
+         IF TE = TS THEN
+           IF TT(I).TYP = '?' THEN
+             TOKENS(TT(I).NUM) = PART;
+           ELSE;
+         ELSE;
+           IF TT(I).TYP = '?' THEN
+             TOKENS(TT(I).NUM) = '';
+         PART = '';
+       END;
+
+       ELSE DO;
+         CALL STRIPL(PART);
+         J = INDEX(PART,' ');
+         IF J = 0 THEN DO;
+           IF TT(I).TYP = '?' THEN
+             TOKENS(TT(I).NUM) = PART;
+           PART = '';
+         END;
+         ELSE DO;
+           IF TT(I).TYP = '?' THEN
+             TOKENS(TT(I).NUM) = SUBSTR(PART,1,J - 1);
+           IF J < LENGTH(PART) THEN
+             PART = SUBSTR(PART,J + 1,LENGTH(PART) - J);
+           ELSE
+             PART = '';
+         END;
+       END;
+
+     END;
+
+     RETURN;
+
+   END;
+
+ /*********************************************************************/
+
+   STRIPL: PROC(S);
+
+     DCL S CHAR(*) VAR;
+
+     DCL I FIXED BIN(15);
+     DCL X BIT(1) INIT('0'B);;
+
+     IF S = '' THEN /* CONTAINS ONLY BLANKS */
+       S = '';
+     ELSE
+       DO I = 1 TO LENGTH(S) WHILE(^X);
+         IF SUBSTR(S,I,1) ^= ' ' THEN DO;
+           X = '1'B;
+           IF I > 1 THEN
+             S = SUBSTR(S,I,LENGTH(S) + 1 - I);
+         END;
+       END;
+
+     RETURN;
+
+   END;
+
+ /*********************************************************************/
+
+   TTOK: PROC(TPOS,TLEN);
+
+     DCL (TPOS,TLEN) FIXED BIN(15);
+
+     DCL (C,CQ) CHAR(1);
+     DCL (I,V) FIXED BIN(15);
+
+     NTT = NTT + 1;
+     TT(NTT).POS = TPOS;
+     TT(NTT).LEN = TLEN;
+     C = SUBSTR(TEMPLATE,TPOS,1);
+
+     IF C = QTEMPLATE THEN DO;
+       TT(NTT).POS = LENGTH(TSTR) + 1;
+       TT(NTT).LEN = 0;
+       TT(NTT).TYP = 'S';
+       PATT = SUBSTR(TEMPLATE,TPOS + 1,TLEN - 2) || ' ';
+       DO I = 1 TO LENGTH(PATT) - 1;
+         CQ = SUBSTR(PATT,I,1);
+         TSTR = TSTR || CQ;
+         TT(NTT).LEN = TT(NTT).LEN + 1;
+         IF CQ = C THEN
+           IF SUBSTR(PATT,I + 1,1) = C THEN
+             I = I + 1;
+       END;
+     END;
+
+     ELSE
+     IF C = VARPREFIX THEN DO;
+       TT(NTT).TYP = '?';
+       IF TLEN > 5 THEN DO;
+         L = TPOS - 1 + TLEN;
+         CALL ERR('T',L);
+       END;
+       ELSE DO;
+         PATT = SUBSTR(TEMPLATE,TPOS + 1,TLEN - 1);
+         V = VERIFY(PATT,'0123456789');
+         IF V > 0 THEN DO;
+           L = TPOS + V;
+           CALL ERR('T',L);
+         END;
+       END;
+       IF RETCODE = 0 THEN DO;
+         GET STRING(PATT) EDIT(TT(NTT).NUM) (F(LENGTH(PATT)));
+         IF TT(NTT).NUM > NTOKENS THEN DO;
+           L = TPOS + 1;
+           CALL ERR('N',L);
+         END;
+         ELSE
+           XTOKENS = MAX(TT(NTT).NUM,XTOKENS);
+       END;
+     END;
+
+     ELSE
+     IF C = '.' THEN DO;
+       TT(NTT).TYP = '.';
+       IF TLEN > 1 THEN DO;
+         L = TPOS + 1;
+         CALL ERR('T',L);
+       END;
+     END;
+
+     ELSE
+     IF C >= '0' & C <= '9' THEN DO;
+       TT(NTT).TYP = 'P';
+       IF TLEN > 4 THEN DO;
+         L = TPOS - 1 + TLEN;
+         CALL ERR('T',L);
+       END;
+       ELSE DO;
+         PATT = SUBSTR(TEMPLATE,TPOS,TLEN);
+         V = VERIFY(PATT,'0123456789');
+         IF V > 0 THEN DO;
+           L = TPOS - 1 + V;
+           CALL ERR('T',L);
+         END;
+       END;
+       IF RETCODE = 0 THEN
+         GET STRING(PATT) EDIT(TT(NTT).NUM) (F(LENGTH(PATT)));
+     END;
+
+     ELSE
+     IF C = '=' THEN DO;
+       TT(NTT).TYP = 'P';
+       IF TLEN < 2 |
+          TLEN > 5 THEN DO;
+         L = TPOS - 1 + TLEN;
+         CALL ERR('T',L);
+       END;
+       ELSE DO;
+         PATT = SUBSTR(TEMPLATE,TPOS + 1,TLEN - 1);
+         V = VERIFY(PATT,'0123456789');
+         IF V > 0 THEN DO;
+           L = TPOS + V;
+           CALL ERR('T',L);
+         END;
+       END;
+       IF RETCODE = 0 THEN
+         GET STRING(PATT) EDIT(TT(NTT).NUM) (F(LENGTH(PATT)));
+     END;
+
+     ELSE
+     IF C = '+' | C = '-' THEN DO;
+       TT(NTT).TYP = 'O';
+       IF TLEN < 2 |
+          TLEN > 5 THEN DO;
+         L = TPOS - 1 + TLEN;
+         CALL ERR('T',L);
+       END;
+       ELSE DO;
+         PATT = SUBSTR(TEMPLATE,TPOS + 1,TLEN - 1);
+         V = VERIFY(PATT,'0123456789');
+         IF V > 0 THEN DO;
+           L = TPOS + V;
+           CALL ERR('T',L);
+         END;
+       END;
+       IF RETCODE = 0 THEN DO;
+         GET STRING(PATT) EDIT(TT(NTT).NUM) (F(LENGTH(PATT)));
+         IF C = '-' THEN
+           TT(NTT).NUM = -TT(NTT).NUM;
+       END;
+     END;
+
+     ELSE DO;
+       L = TPOS;
+       CALL ERR('T',L);
+     END;
+
+     RETURN;
+
+   END;
+
+ /*********************************************************************/
+
+   ERR: PROC(ET,EI);
+
+     DCL ET CHAR(1);
+     DCL EI FIXED BIN(15);
+
+     IF ET = 'Q' THEN DO;
+       RETCODE = 12; /* UNMATCHED QUOTE IN TEMPLATE */
+       XTEMPLATE = EI;
+     END;
+
+     ELSE
+     IF ET = 'T' THEN DO;
+       RETCODE = 8; /* INVALID TEMPLATE */
+       XTEMPLATE = EI;
+     END;
+
+     ELSE
+     IF ET = 'N' THEN DO;
+       RETCODE = 16; /* MORE '?N' IN TEMPLATE THAN TOKENS */
+       XTEMPLATE = EI;
+     END;
+
+     RETURN;
+
+   END;
+
+ END;
