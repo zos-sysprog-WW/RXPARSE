@@ -3,18 +3,17 @@
                TOKENS,
                MISC);
 
-   DCL STRING CHAR(*) VAR ;
-   DCL TEMPLATE CHAR(*) VAR ;
-   DCL TOKENS(*) CHAR(*) VAR ;
-   DCL 1 MISC,
-         2 NTOKENS FIXED BIN(15),
-         2 RETCODE FIXED BIN(15),
-         2 XTOKENS FIXED BIN(15),
-         2 XTEMPLATE FIXED BIN(15),
-         2 QTEMPLATE CHAR(1),
-         2 VARPREFIX CHAR(1);
+   %DCL STRLNG CHAR;
+   %DCL TEMLNG CHAR;
+   %DCL TOKDIM CHAR;
+   %DCL TOKLNG CHAR;
+   %STRLNG='*';
+   %TEMLNG='*';
+   %TOKDIM='*';
+   %TOKLNG='*';
+   %INCLUDE RXPAIF;
 
-   DCL 1 TT((LENGTH(TEMPLATE) + 1) / 2),
+   DCL 1 TT((LENGTH(TEMPLATE) + 1) / 2) CTL,
          2 POS FIXED BIN(15),
          2 LEN FIXED BIN(15),
          2 NUM FIXED BIN(15),
@@ -24,9 +23,9 @@
    DCL (I,J,K,L) FIXED BIN(15);
    DCL (Q,X) BIT(1) INIT('0'B);;
    DCL C CHAR(1);
-   DCL TSTR CHAR(LENGTH(TEMPLATE)) VAR;
-   DCL TEMP CHAR(LENGTH(TEMPLATE) + 1);
-   DCL PATT CHAR(LENGTH(TEMPLATE)) VAR;
+   DCL TSTR CHAR(LENGTH(TEMPLATE)) VAR CTL;
+   DCL TEMP CHAR(LENGTH(TEMPLATE) + 1) CTL;
+   DCL PATT CHAR(LENGTH(TEMPLATE)) VAR CTL;
    DCL (SL,MS,ME,II) FIXED BIN(15);
    DCL (SS,SE,TS,TE) FIXED BIN(15);
 
@@ -42,8 +41,12 @@
    DO I = 1 TO NTOKENS;
      TOKENS(I) = '';
    END;
+   ALLOCATE TT;
+   ALLOCATE TSTR;
    TSTR = '';
+   ALLOCATE TEMP;
    TEMP = TEMPLATE || ' ';
+   ALLOCATE PATT;
 
    J = 0;
    DO I = 1 TO LENGTH(TEMP) WHILE(^X);
@@ -150,6 +153,13 @@
    SE = SL + 1;
    TE = NTT;
    CALL WORDS(SS,SE,TS,TE,' ');
+
+ /*********************************************************************/
+
+   FREE TT;
+   FREE TSTR;
+   FREE TEMP;
+   FREE PATT;
 
    RETURN;
 
