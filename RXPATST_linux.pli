@@ -1,23 +1,21 @@
- RXPATST: PROC(PAR) OPTIONS(MAIN);
+ rxpatst: proc(par) options(main);
 
-   DCL PAR CHAR(100) VAR;
-   DCL RXPARSE ENTRY RETURNS(FIXED BIN(31));
-   DCL (I,J,M,N) FIXED BIN(15);
-   DCL Q CHAR(1);
+   dcl par char(100) var;
+   dcl rxparse entry returns(fixed bin(31));
+   dcl (i,j,m,n) fixed bin(15);
+   dcl q char(1);
 
-   DCL STRING CHAR(55) VAR;
-   DCL TEMPLATE CHAR(55) VAR;
-   DCL TOKENS(6) CHAR(55) VAR;
-   DCL 1 MISC,
-         2 NTOKENS FIXED BIN(15) INIT(6),
-         2 RETCODE FIXED BIN(15),
-         2 XTOKENS FIXED BIN(15),
-         2 XTEMPLATE FIXED BIN(15),
-         2 QTEMPLATE CHAR(1) INIT('"'),
-         2 VARPREFIX CHAR(1) INIT('?'),
-         2 MAXLNGTOK FIXED BIN(15) INIT(55);
+   %replace strlng by 55;
+   %replace temlng by 55;
+   %replace tokdim by 6;
+   %replace toklng by 55;
+   %include rxpaif;
+   ntokens = tokdim;
+   qtemplate = '"';
+   varprefix = '?';
+   maxlngtok = toklng;
 
-   DCL S(79) CHAR(55) VAR STATIC INIT(
+   dcl s(79) char(55) var static init(
      /*01*/ 'a b c',
      /*02*/ 'a b c',
      /*03*/ 'a b c',
@@ -98,7 +96,7 @@
      /*78*/ 'a b c',
      /*79*/ 'a b c');
 
-   DCL T(79) CHAR(55) VAR STATIC INIT(
+   dcl t(79) char(55) var static init(
      /*01*/ '"a" ?1 .',
      /*02*/ '"a" ?1 "b" ?2',
      /*03*/ '"a" ?1 "c" ?2',
@@ -179,7 +177,7 @@
      /*78*/ '?1 .. ?2',
      /*79*/ '?1 "a" "c" ?2');
 
-   DCL E(79,6) CHAR(55) VAR STATIC INIT(
+   dcl e(79,6) char(55) var static init(
      /*01*/ 'b',
             '',
             '',
@@ -655,103 +653,103 @@
             '',
             '');
 
-   IF PAR ^= '' THEN
-     GET STRING(PAR) LIST(M,N);
-   ELSE DO;
-     M = 1;
-     N = 79;
-   END;
+   if par ^= '' then
+     get string(par) list(m,n);
+   else do;
+     m = 1;
+     n = 79;
+   end;
 
-   IF QTEMPLATE = '"' THEN
-     Q = '''';
-   ELSE
-     Q = '"';
+   if qtemplate = '"' then
+     q = '''';
+   else
+     q = '"';
 
-   DO I = M TO N;
-     IF T(I) ^= '' THEN DO;
-       PUT SKIP EDIT('---',I,'---') (A,F(IWIDE(I)),A);
-       PUT SKIP EDIT('S=',Q,S(I),Q) (A,A,A,A);
+   do i = m to n;
+     if t(i) ^= '' then do;
+       put skip edit('---',i,'---') (a,f(iwide(i)),a);
+       put skip edit('S=',q,s(i),q) (a,a,a,a);
 
-       STRING = S(I);
-       TEMPLATE = T(I);
-       CALL RXPARSE(STRING, TEMPLATE, TOKENS, MISC);
+       string = s(i);
+       template = t(i);
+       call rxparse(string, template, tokens, misc);
 
-       PUT SKIP EDIT('T=',Q,T(I),Q) (A,A,A,A);
+       put skip edit('T=',q,t(i),q) (a,a,a,a);
 
-       IF RETCODE ^= 0 THEN DO;
-         IF RETCODE = 20 THEN
-           PUT SKIP EDIT(RETCODE,': LENGTH(TEMPLATE) > ',XTEMPLATE,' !')
-                        (F(2),A,F(5),A);
+       if retcode ^= 0 then do;
+         if retcode = 20 then
+           put skip edit(retcode,': LENGTH(TEMPLATE) > ',xtemplate,' !')
+                        (f(2),a,f(5),a);
 
-         ELSE
-         IF RETCODE = 24 THEN DO;
-           PUT SKIP EDIT(RETCODE,': NTOKENS > ',XTOKENS,' !')
-                        (F(2),A,F(5),A);
-           PUT SKIP EDIT(' ') (A);
-           RETURN;
-         END;
+         else
+         if retcode = 24 then do;
+           put skip edit(retcode,': NTOKENS > ',xtokens,' !')
+                        (f(2),a,f(5),a);
+           put skip edit(' ') (a);
+           return;
+         end;
 
-         ELSE
-         IF RETCODE = 28 THEN DO;
-           PUT SKIP EDIT(RETCODE,': MAXLNGTOK < ',MAXLNGTOK,' !')
-                        (F(2),A,F(5),A);
-           PUT SKIP EDIT(' ') (A);
-           RETURN;
-         END;
+         else
+         if retcode = 28 then do;
+           put skip edit(retcode,': LENGTH(TOKENS) > ',maxlngtok,' !')
+                        (f(2),a,f(5),a);
+           put skip edit(' ') (a);
+           return;
+         end;
 
-         ELSE
-         IF XTEMPLATE ^= 0 THEN
-           PUT SKIP EDIT(RETCODE,':','!') (F(2),A,X(XTEMPLATE - 1),A);
-       END;
+         else
+         if xtemplate ^= 0 then
+           put skip edit(retcode,':','!') (f(2),a,x(xtemplate - 1),a);
+       end;
 
-       ELSE
-         DO J = 1 TO XTOKENS;
-           IF ITOK(J) > 0 THEN DO;
-             PUT SKIP EDIT(VARPREFIX,J,'=',Q,TOKENS(J),Q)
-               (A,F(IWIDE(J)),A,A,A,A);
-             IF LENGTH(TOKENS(J)) = LENGTH(E(I,J)) &
-                TOKENS(J) = E(I,J) THEN
-               PUT SKIP EDIT('OK') (A);
-             ELSE
-               PUT SKIP EDIT('!!=',Q,E(I,J),Q)
-                 (A,A,A,A);
-           END;
-         END;
+       else
+         do j = 1 to xtokens;
+           if itok(j) > 0 then do;
+             put skip edit(varprefix,j,'=',q,tokens(j),q)
+               (a,f(iwide(j)),a,a,a,a);
+             if length(tokens(j)) = length(e(i,j)) &
+                tokens(j) = e(i,j) then
+               put skip edit('OK') (a);
+             else
+               put skip edit('!!=',q,e(i,j),q)
+                 (a,a,a,a);
+           end;
+         end;
 
-       PUT SKIP EDIT(' ') (A);
-     END;
-   END;
+       put skip edit(' ') (a);
+     end;
+   end;
 
-   RETURN;
-
-
-   IWIDE: PROC(F) RETURNS(FIXED BIN(15));
-
-     DCL F FIXED BIN(15);
-     DCL (I,J) FIXED BIN(15);
-
-     J = F;
-     DO I = 0 BY 1 WHILE(J ^= 0);
-       J = J / 10;
-     END;
-     IF F < 0 THEN
-       I = I + 1;
-
-     RETURN(I);
-
-   END;
+   return;
 
 
-   ITOK: PROC(N) RETURNS(FIXED BIN(15));
+   iwide: proc(f) returns(fixed bin(15));
 
-     DCL N FIXED BIN(15);
-     DCL T CHAR(2);
+     dcl f fixed bin(15);
+     dcl (i,j) fixed bin(15);
 
-     SUBSTR(T,1,1) = VARPREFIX;
-     SUBSTR(T,2,1) = SUBSTR('123456789',N,1);
+     j = f;
+     do i = 0 by 1 while(j ^= 0);
+       j = j / 10;
+     end;
+     if f < 0 then
+       i = i + 1;
 
-     RETURN(INDEX(TEMPLATE,T));
+     return(i);
 
-   END;
+   end;
 
- END;
+
+   itok: proc(n) returns(fixed bin(15));
+
+     dcl n fixed bin(15);
+     dcl t char(2);
+
+     substr(t,1,1) = varprefix;
+     substr(t,2,1) = substr('123456789',n,1);
+
+     return(index(template,t));
+
+   end;
+
+ end;
