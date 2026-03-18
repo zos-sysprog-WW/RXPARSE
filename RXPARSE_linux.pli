@@ -281,7 +281,7 @@
      dcl (tpos,tlen) fixed bin(15);
 
      dcl (c,cq) char(1);
-     dcl (i,v) fixed bin(15);
+     dcl (i,l,v) fixed bin(15);
 
      ntt = ntt + 1;
      tt(ntt).pos = tpos;
