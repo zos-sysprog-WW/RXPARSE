@@ -254,7 +254,7 @@
      DCL (TPOS,TLEN) FIXED BIN(15);
 
      DCL (C,CQ) CHAR(1);
-     DCL (I,V) FIXED BIN(15);
+     DCL (I,L,V) FIXED BIN(15);
 
      NTT = NTT + 1;
      TT(NTT).POS = TPOS;
