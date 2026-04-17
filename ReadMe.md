@@ -11,16 +11,18 @@ versions of MVS and z/OS.
 Test program RXPATST
 (output RXPATST.out);  
 Comparison of results with those of REXX procedure TSTPARS,
-executed with  
+executed with
+
 * BREXX/370 V2R5M3 under MVS 3.8  
     (output TSTPARS.out;  
     Differences in test cases 7 16 24 36 54 56 69 due to an
     implementation error in BREXX, see TSO/E REXX Reference
-    page 167 ff.)  
+    page 167 and following)  
 * OOREXX (Open Object Rexx 4.2.0) under Debian Linux  
     (results identical)
 
-Test cases  
+Test cases
+
 * from TSO/E REXX Reference  
 * from TSO/E REXX User's Guide  
 * own  
@@ -31,7 +33,29 @@ Compiled with
 [Iron Spring Software](http://www.iron-spring.com)
 PL/I Compiler 1.4.0a under Debian Linux, test as well.
 
-This compiler has certain limitations, hence own versions  
+This compiler has certain limitations, hence own versions
+
 * RXPARSE_linux  
 * RXPATST_linux  
     (output RXPATST_linux.out)
+
+## C
+
+Implementation in C:
+
+* rxpaif.h  
+* rxparse.c  
+* rxpatst.c  
+    (output rxpatst.out)
+
+The PL/1 data type CHARACTER VARYING (variable length string) has been implemented in C. Example:
+
+* dcl vs char(10) var init('ABC');
+* struct  
+  {  
+&nbsp;&nbsp;&nbsp;short lng = 3;  
+&nbsp;&nbsp;&nbsp;char dat[10] = "ABC";  
+  } vs;
+
+Compiled with
+gcc version 12.2.0 on Debian Linux; test as well.
