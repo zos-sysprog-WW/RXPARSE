@@ -184,7 +184,7 @@
    unspec(t) = unspec(p);
    do i = 1 to xtokens;
      p->tok = toks(i);
-     t = t + 3 + maxlngtok;
+     t = t + 2 + maxlngtok + mod(maxlngtok, 2);
      unspec(p) = unspec(t);
    end;
 
