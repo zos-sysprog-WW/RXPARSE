@@ -27,6 +27,12 @@ Test cases
 * from TSO/E REXX User's Guide  
 * own  
 
+<u>Why is MAXLNGTOK missing from the interface here?</u>  
+The length of the string is known in the subroutine because
+the IBM PL/I compiler passes metadata along with the parameter
+(dimension of array, length of string, ...; IBM calls it a dope vector),
+unlike the Linux PL/I compiler and C (and other programming languages).
+
 ## Linux
 
 Compiled with

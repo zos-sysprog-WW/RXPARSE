@@ -25,7 +25,13 @@ Testfälle
 
 * aus TSO/E REXX Reference  
 * aus TSO/E REXX User's Guide  
-* eigene  
+* eigene
+
+<u>Warum fehlt MAXLNGTOK hier in der Schnittstelle?</u>  
+Länge der Zeichenkette ist im Unterprogramm bekannt weil
+der IBM PL/I Compiler Metadaten zusammen mit dem Parameter
+(Dimension von Bereich, Länge von Zeichenkette, ...; IBM nennt es dope vector)
+übergibt, im Gegensatz zum Linux PL/I Compiler und C (und anderen Programmiersprachen).
 
 ## Linux
 
@@ -48,7 +54,8 @@ Implementierung in C:
 * rxpatst.c  
     (Ausgabe rxpatst.out)
 
-Der Datentyp CHARACTER VARYING (Zeichenkette variabler Länge) von PL/1 wurde in C nachgebildet. Beispiel:
+Der Datentyp CHARACTER VARYING (Zeichenkette variabler Länge) von PL/1 wurde in C
+nachgebildet. Beispiel:
 
 * dcl vs char(10) var init('ABC');
 * struct  
