@@ -27,11 +27,11 @@ Testfälle
 * aus TSO/E REXX User's Guide  
 * eigene
 
-<u>Warum fehlt MAXLNGTOK hier in der Schnittstelle?</u>  
-Länge der Zeichenkette ist im Unterprogramm bekannt weil
+Warum fehlt MAXLNGTOK hier in der Schnittstelle?  
+*Länge der Zeichenkette ist im Unterprogramm bekannt weil
 der IBM PL/I Compiler Metadaten zusammen mit dem Parameter
 (Dimension von Bereich, Länge von Zeichenkette, ...; IBM nennt es dope vector)
-übergibt, im Gegensatz zum Linux PL/I Compiler und C (und anderen Programmiersprachen).
+übergibt, im Gegensatz zum Linux PL/I Compiler und C (und anderen Programmiersprachen).*
 
 ## Linux
 
