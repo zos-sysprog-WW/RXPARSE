@@ -54,6 +54,7 @@ Implementierung in C:
 * rxpatst.c  
     (Ausgabe rxpatst.out)
 
+
 Der Datentyp CHARACTER VARYING (Zeichenkette variabler Länge) von PL/1 wurde in C
 nachgebildet. Beispiel:
 
@@ -66,3 +67,5 @@ nachgebildet. Beispiel:
 
 Umwandlung mit
 gcc version 12.2.0 unter Debian Linux, Test ebenso.
+
+
